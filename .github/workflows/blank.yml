@@ -1,0 +1,43 @@
+from concurrent.futures import ThreadPoolExecutor
+import sympy
+import math
+
+def is_prime(n):
+    if n <= 1:
+        return False
+    if n <= 3:
+        return True
+    if n % 2 == 0 or n % 3 == 0:
+        return False
+    i = 5
+    while i * i <= n:
+        if n % i == 0 or n % (i + 2) == 0:
+            return False
+        i += 6
+    return True
+
+def lucas_lehmer(p):
+    m = (1 << p) - 1
+    s = 4
+    for _ in range(2, p):
+        s = (s * s - 2) % m
+    return s == 0
+
+def mersenne_prime_test(p):
+    if is_prime(p) and lucas_lehmer(p):
+        return p
+
+def mersenne_prime_finder(start, num_threads):
+    p = start
+    while True:
+        print("Searching for Mersenne primes in range:", p, "-", p + num_threads - 1)
+        with ThreadPoolExecutor(max_workers=num_threads) as executor:
+            results = list(executor.map(mersenne_prime_test, range(p, p + num_threads)))
+            for result in results:
+                if result:
+                    print("Mersenne prime found:", result)
+        p += num_threads
+
+start = 87000000
+num_threads = 4
+mersenne_prime_finder(start, num_threads)
